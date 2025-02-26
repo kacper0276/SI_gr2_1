@@ -157,6 +157,19 @@ namespace DaneZPlikuConsole
             return result;
         }
 
+        static double CalculateStandardDeviation(List<string> data)
+        {
+            List<double> numericData = data.Select(x => StringToDouble(x)).ToList();
+
+            double mean = numericData.Average();
+
+            double sumOfSquares = numericData.Sum(x => Math.Pow(x - mean, 2));
+
+            double variance = sumOfSquares / numericData.Count;
+
+            return Math.Sqrt(variance);
+        }
+
         static void Main(string[] args)
         {
             string nazwaPlikuZDanymi = @"diabetes.txt";
@@ -224,6 +237,22 @@ namespace DaneZPlikuConsole
 
                 Console.WriteLine("--------------------------");
             }
+
+            // Odchylenie standardowe
+            int length = wczytaneDane.Length;
+            for (int i = 0; i < wczytaneDane[0].Length; i++)
+            {
+                List<string> data = new List<string>();
+
+                for (int j = 0; j < length; j++)
+                {
+                    data.Add(wczytaneDane[j][i]);
+                }
+
+                var standardDeviation = CalculateStandardDeviation(data);
+                Console.WriteLine(standardDeviation);
+            }
+            
 
 
             /****************** Koniec miejsca na rozwiązanie ********************************/
