@@ -7,6 +7,17 @@ using System.Threading.Tasks;
 
 namespace DaneZPlikuConsole
 {
+    class UniqueSet<T>: List<T>
+    {
+        public new void Add(T obj)
+        {
+            if (!Contains(obj))
+            {
+                base.Add(obj);
+            }
+        }
+    }
+
     class Program
     {
         static string TablicaDoString<T>(T[][] tab)
@@ -113,6 +124,39 @@ namespace DaneZPlikuConsole
             return result;
         }
 
+        static UniqueSet<double> getUnique(string[][] data)
+        {
+            var result = new UniqueSet<double>();
+            int size = data.Length;
+            int columnSize = data[0].Length;
+
+            for (int i = 0; i < columnSize; i++)
+            {
+
+                for (int j = 0; j < size; j++)
+                {
+                    double parsedData = StringToDouble(data[j][i]);
+                    result.Add(parsedData);
+                }
+            }
+
+            return result;
+        }
+
+        static UniqueSet<double> getUniqueForColumn(string[][] data, int column)
+        {
+            var result = new UniqueSet<double>();
+            int size = data.Length;
+
+            for (int j = 0; j < size; j++)
+            {
+                double parsedData = StringToDouble(data[j][column]);
+                result.Add(parsedData);
+            }
+
+            return result;
+        }
+
         static void Main(string[] args)
         {
             string nazwaPlikuZDanymi = @"diabetes.txt";
@@ -156,6 +200,29 @@ namespace DaneZPlikuConsole
             foreach (var item in maxResult)
             {
                 Console.WriteLine(item);
+            }
+
+            // Lista wszystikch
+            var uniq = getUnique(wczytaneDane);
+
+            foreach (var item in uniq)
+            {
+                Console.WriteLine(item);
+            }
+
+            // Poszczególne
+            for (int i = 0; i < wczytaneDane[0].Length; i++)
+            {
+                var uniqueForColumn = getUniqueForColumn(wczytaneDane, i);
+
+                foreach (var item in uniqueForColumn)
+                {
+                    Console.WriteLine(item);
+                }
+
+                Console.WriteLine("Liczba wszystkich: " + uniqueForColumn.Count);
+
+                Console.WriteLine("--------------------------");
             }
 
 
