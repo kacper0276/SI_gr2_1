@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -62,10 +63,60 @@ namespace DaneZPlikuConsole
             return wczytaneDane;
         }
 
+        static List<double> FindMin(string[][] data)
+        {
+            int size = data.Length;
+            int columnSize = data[0].Length;
+            var result = new List<double>();
+
+            for (int i = 0; i < columnSize; i++)
+            {
+                double min = int.MaxValue;
+
+                for (int j = 0; j < size; j++)
+                {
+                    double parsedData = StringToDouble(data[j][i]);
+                    if (parsedData < min)
+                    {
+                        min = parsedData;
+                    }
+                }
+
+                result.Add(min);
+            }
+
+            return result;
+        }
+
+        static List<double> FindMax(string[][] data)
+        {
+            int size = data.Length;
+            int columnSize = data[0].Length;
+            var result = new List<double>();
+
+            for (int i = 0; i < columnSize; i++)
+            {
+                double max = int.MinValue;
+
+                for (int j = 0; j < size; j++)
+                {
+                    double parsedData = StringToDouble(data[j][i]);
+                    if (parsedData > max)
+                    {
+                        max = parsedData;
+                    }
+                }
+
+                result.Add(max);
+            }
+
+            return result;
+        }
+
         static void Main(string[] args)
         {
-            string nazwaPlikuZDanymi = @"australian.txt";
-            string nazwaPlikuZTypamiAtrybutow = @"australian-type.txt";
+            string nazwaPlikuZDanymi = @"diabetes.txt";
+            string nazwaPlikuZTypamiAtrybutow = @"diabetes-type.txt";
 
             string[][] wczytaneDane = StringToTablica(nazwaPlikuZDanymi);
             string[][] atrType = StringToTablica(nazwaPlikuZTypamiAtrybutow);
@@ -81,17 +132,31 @@ namespace DaneZPlikuConsole
             Console.Write(wynikAtrType);
 
             /****************** Miejsce na rozwiązanie *********************************/
+            //Console.WriteLine(atrType[0][0]);
+            //Console.WriteLine(atrType[0][1]);
+            //Console.WriteLine(atrType[1][0]);
+            //Console.WriteLine(atrType[1][1]);
+            //Console.WriteLine(atrType[2][0]);
+            //Console.WriteLine(atrType[2][1]);
 
+            // Wielkości klas decyzyjnych
+            Console.WriteLine(wczytaneDane.Length);
 
+            var minResult = FindMin(wczytaneDane);
 
+            Console.WriteLine("Minimalne: ");
+            foreach (var item in minResult)
+            {
+                Console.WriteLine(item);
+            }
 
+            var maxResult = FindMax(wczytaneDane);
 
-
-
-
-
-
-
+            Console.WriteLine("Maksymalne: ");
+            foreach (var item in maxResult)
+            {
+                Console.WriteLine(item);
+            }
 
 
             /****************** Koniec miejsca na rozwiązanie ********************************/
