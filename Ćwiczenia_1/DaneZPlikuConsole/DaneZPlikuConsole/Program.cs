@@ -4,6 +4,7 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace DaneZPlikuConsole
 {
@@ -122,6 +123,70 @@ namespace DaneZPlikuConsole
             }
 
             return result;
+        }
+
+        static List<double> Avg(string[][] data)
+        {
+            int size = data.Length;
+            int columnSize = data[0].Length;
+            var result = new List<double>();
+
+            for (int i = 0; i < columnSize; i++)
+            {
+                double sum = 0;
+
+                for (int j = 0; j < size; j++)
+                {
+                    double parsedData = StringToDouble(data[j][i]);
+                    sum += parsedData;
+                }
+
+                result.Add(sum / columnSize);
+            }
+
+            return result;
+        }
+
+        public static void FillMissingValues(string[][] data)
+        {
+            int rows = data.Length;
+            int cols = data[0].Length;
+
+            for (int j = 0; j < cols; j++)
+            {
+                Dictionary<string, int> frequency = new Dictionary<string, int>();
+                double sum = 0;
+                int count = 0;
+
+                for (int i = 0; i < rows; i++)
+                {
+                    if (data[i][j] != "?")
+                    {
+                        if (double.TryParse(data[i][j], out double num))
+                        {
+                            sum += num;
+                            count++;
+                        }
+                        else
+                        {
+                            if (!frequency.ContainsKey(data[i][j]))
+                                frequency[data[i][j]] = 0;
+                            frequency[data[i][j]]++;
+                        }
+                    }
+                }
+
+                string mostCommon = frequency.OrderByDescending(x => x.Value).FirstOrDefault().Key;
+                string replacement = count > 0 ? (sum / count).ToString() : mostCommon;
+
+                for (int i = 0; i < rows; i++)
+                {
+                    if (data[i][j] == "?")
+                    {
+                        data[i][j] = replacement;
+                    }
+                }
+            }
         }
 
         static UniqueSet<double> getUnique(string[][] data)
@@ -252,7 +317,58 @@ namespace DaneZPlikuConsole
                 var standardDeviation = CalculateStandardDeviation(data);
                 Console.WriteLine(standardDeviation);
             }
-            
+
+            // Generowanie 10%
+            int originalRows = wczytaneDane.Length;
+            int cols = wczytaneDane[0].Length;
+            int extraRows = originalRows / 10;
+            int newRows = originalRows + extraRows;
+
+            string[][] expandedData = new string[newRows][];
+
+            for (int i = 0; i < originalRows; i++)
+            {
+                expandedData[i] = new string[cols];
+                Array.Copy(wczytaneDane[i], expandedData[i], cols);
+            }
+
+            for (int i = originalRows; i < newRows; i++)
+            {
+                expandedData[i] = new string[cols];
+                for (int j = 0; j < cols; j++)
+                {
+                    expandedData[i][j] = "?";
+                }
+            }
+
+            // Zadanie 4 i 5
+
+            // Wczytanie csv
+            using (var reader = new StreamReader(@"Churn_Modelling.csv"))
+            {
+                List<string> listA = new List<string>();
+                List<string> listB = new List<string>();
+                while (!reader.EndOfStream)
+                {
+                    var line = reader.ReadLine();
+                    var values = line.Split(',');
+
+                    Console.WriteLine(values[0]);
+                    Console.WriteLine(values[1]);
+                    Console.WriteLine(values[2]);
+                    Console.WriteLine(values[3]);
+                    Console.WriteLine(values[4]);
+                    Console.WriteLine(values[5]);
+                    Console.WriteLine(values[6]);
+                    Console.WriteLine(values[7]);
+                    Console.WriteLine(values[8]);
+                    Console.WriteLine(values[9]);
+                    Console.WriteLine(values[10]);
+                    Console.WriteLine(values[11]);
+                    Console.WriteLine(values[12]);
+                    Console.WriteLine(values[13]);
+                }
+            }
 
 
             /****************** Koniec miejsca na rozwiązanie ********************************/
