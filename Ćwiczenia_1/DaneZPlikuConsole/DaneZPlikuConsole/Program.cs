@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
+using System.Data.Common;
 
 namespace DaneZPlikuConsole
 {
@@ -235,6 +236,30 @@ namespace DaneZPlikuConsole
             return Math.Sqrt(variance);
         }
 
+        
+        static string[][] NormalizeIntoIntervals(string[][] data, double a, double b)
+        {
+            int size = data.Length;
+            int columnSize = data[0].Length;
+            List<double> minResults = FindMin(data);
+            List<double> maxResults = FindMax(data);
+
+            for (int j = 0; j < columnSize; j++)
+            {
+                if(minResults[j] == maxResults[j])
+                {
+                    continue;
+                }
+                for (int i = 0; i < size; i++)
+                {
+                    double parsedData = StringToDouble(data[i][j]);
+                    double normalizedValue = ((b - a) * (parsedData - minResults[j])) / (maxResults[j] - minResults[j]) + a;
+                    data[i][j] = normalizedValue.ToString("F2");//Przybliżenie do dwóch miejsc po przecinku by dane były czytelne
+                }
+            }
+            return data;
+        }
+        
         static void Main(string[] args)
         {
             string nazwaPlikuZDanymi = @"diabetes.txt";
@@ -317,7 +342,7 @@ namespace DaneZPlikuConsole
                 var standardDeviation = CalculateStandardDeviation(data);
                 Console.WriteLine(standardDeviation);
             }
-
+            // Zadanie 4 i 5
             // Generowanie 10%
             int originalRows = wczytaneDane.Length;
             int cols = wczytaneDane[0].Length;
@@ -341,7 +366,25 @@ namespace DaneZPlikuConsole
                 }
             }
 
-            // Zadanie 4 i 5
+            string[][] normalizedData = NormalizeIntoIntervals(wczytaneDane, -1, 1);
+            Console.WriteLine("Dane znormalizowane na przedział <-1, 1>\n");
+            foreach (var row in normalizedData)
+            {
+                Console.WriteLine(string.Join(" ", row));
+            }
+            string[][] normalizedData2 = NormalizeIntoIntervals(wczytaneDane, 0, 1);
+            Console.WriteLine("Dane znormalizowane na przedział <0, 1>\n");
+            foreach (var row in normalizedData2)
+            {
+                Console.WriteLine(string.Join(" ", row));
+            }
+            string[][] normalizedData3 = NormalizeIntoIntervals(wczytaneDane, -10, 10);
+            Console.WriteLine("Dane znormalizowane na przedział <-10,10>");
+            foreach (var row in normalizedData3)
+            {
+                Console.WriteLine(string.Join(" ", row));
+            }
+
 
             // Wczytanie csv
             using (var reader = new StreamReader(@"Churn_Modelling.csv"))
