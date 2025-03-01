@@ -142,7 +142,7 @@ namespace DaneZPlikuConsole
                     sum += parsedData;
                 }
 
-                result.Add(sum / columnSize);
+                result.Add(sum / size);
             }
 
             return result;
@@ -259,7 +259,81 @@ namespace DaneZPlikuConsole
             }
             return data;
         }
-        
+        static List<double> StdDev(string[][] data)
+        {
+            int size = data.Length;
+            int columnSize = data[0].Length;
+            var result = new List<double>();
+
+            for (int i = 0; i < columnSize; i++)
+            {
+                var columnData = new List<string>();
+
+                for (int j = 0; j < size; j++)
+                {
+                    columnData.Add(data[j][i]);
+                }
+
+                double stdDev = CalculateStandardDeviation(columnData);
+                result.Add(stdDev);
+            }
+
+            return result;
+        }
+        static string[][] Normalize(string[][] data)
+        {
+
+            int size = data.Length;
+            int columnSize = data[0].Length;
+            List<double> averages = Avg(data);
+            List<double> stdDevs = StdDev(data);
+
+            for (int j = 0; j < columnSize; j++)
+            {
+                if (stdDevs[j]==0)
+                {
+                    continue;
+                }
+                for (int i = 0; i < size; i++)
+                {
+                    double parsedData = StringToDouble(data[i][j]);
+                    double normalizedValue = (parsedData - averages[j]) / stdDevs[j];
+                    data[i][j] = normalizedValue.ToString("G");
+                }
+            }
+            return data;
+        }
+        static double CalculateVariance(List<string> data)
+        {
+            List<double> numericData = data.Select(x => StringToDouble(x)).ToList();
+
+            double mean = numericData.Average();
+
+            double sumOfSquares = numericData.Sum(x => Math.Pow(x - mean, 2));
+
+            return sumOfSquares / numericData.Count;
+        }
+        static List<double> Variance(string[][] data)
+        {
+            int size = data.Length;
+            int columnSize = data[0].Length;
+            var result = new List<double>();
+
+            for (int i = 0; i < columnSize; i++)
+            {
+                var columnData = new List<string>();
+
+                for (int j = 0; j < size; j++)
+                {
+                    columnData.Add(data[j][i]);
+                }
+
+                double stdDev = CalculateVariance(columnData);
+                result.Add(stdDev);
+            }
+
+            return result;
+        }
         static void Main(string[] args)
         {
             string nazwaPlikuZDanymi = @"diabetes.txt";
@@ -356,7 +430,7 @@ namespace DaneZPlikuConsole
                 expandedData[i] = new string[cols];
                 Array.Copy(wczytaneDane[i], expandedData[i], cols);
             }
-
+            
             for (int i = originalRows; i < newRows; i++)
             {
                 expandedData[i] = new string[cols];
@@ -385,9 +459,23 @@ namespace DaneZPlikuConsole
                 Console.WriteLine(string.Join(" ", row));
             }
 
+            string[][] normalizedData4 = Normalize(wczytaneDane);
+            Console.WriteLine("Dane znormalizowane");
+            foreach (var row in normalizedData4)
+            {
+                Console.WriteLine(string.Join(" ", row.Select(value => double.Parse(value).ToString("F2"))));
+            }
+
+            List<double>averageValues = Avg(normalizedData4);
+            Console.WriteLine(string.Join(" ", averageValues));
+            //otrzymane wartości nie są dokładnie równe zero ale bliskie jemu z powodu zaokrąglania
+            List<double> variances = Variance(normalizedData4);
+            Console.WriteLine(string.Join(" ", variances));
+            //wartości są równe lub bardzo zbliżone do 1
+
+
 
             // Wczytanie csv
-            using (var reader = new StreamReader(@"Churn_Modelling.csv"))
             {
                 List<string> listA = new List<string>();
                 List<string> listB = new List<string>();
@@ -411,7 +499,6 @@ namespace DaneZPlikuConsole
                     Console.WriteLine(values[12]);
                     Console.WriteLine(values[13]);
                 }
-            }
 
 
             /****************** Koniec miejsca na rozwiązanie ********************************/
