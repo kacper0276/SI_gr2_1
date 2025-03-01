@@ -476,6 +476,7 @@ namespace DaneZPlikuConsole
 
 
             // Wczytanie csv
+            using (var reader = new StreamReader(@"Churn_Modelling.csv"))
             {
                 List<string> listA = new List<string>();
                 List<string> listB = new List<string>();
@@ -499,7 +500,7 @@ namespace DaneZPlikuConsole
                     Console.WriteLine(values[12]);
                     Console.WriteLine(values[13]);
                 }
-
+            }
 
             /****************** Koniec miejsca na rozwiązanie ********************************/
             Console.ReadKey();
