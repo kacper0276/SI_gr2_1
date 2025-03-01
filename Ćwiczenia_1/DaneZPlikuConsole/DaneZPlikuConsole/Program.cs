@@ -475,33 +475,54 @@ namespace DaneZPlikuConsole
 
 
 
-            // Wczytanie csv
+            //wczytanie pliku CSV
+            List<Dictionary<string, string>> readableData = new List<Dictionary<string, string>>();
+            UniqueSet<string> geographyValues = new UniqueSet<string>();
             using (var reader = new StreamReader(@"Churn_Modelling.csv"))
             {
-                List<string> listA = new List<string>();
-                List<string> listB = new List<string>();
+                string headerLine = reader.ReadLine();
+                var headers = headerLine.Split(',');
+
                 while (!reader.EndOfStream)
                 {
                     var line = reader.ReadLine();
                     var values = line.Split(',');
 
-                    Console.WriteLine(values[0]);
-                    Console.WriteLine(values[1]);
-                    Console.WriteLine(values[2]);
-                    Console.WriteLine(values[3]);
-                    Console.WriteLine(values[4]);
-                    Console.WriteLine(values[5]);
-                    Console.WriteLine(values[6]);
-                    Console.WriteLine(values[7]);
-                    Console.WriteLine(values[8]);
-                    Console.WriteLine(values[9]);
-                    Console.WriteLine(values[10]);
-                    Console.WriteLine(values[11]);
-                    Console.WriteLine(values[12]);
-                    Console.WriteLine(values[13]);
+                    var rowDict = new Dictionary<string, string>();
+                    for (int i = 0; i < headers.Length; i++)
+                    {
+                        string header = headers[i];
+                        rowDict[headers[i]] = values.Length > i ? values[i] : "MISSING";
+                        if (header == "Geography")
+                        {
+                            geographyValues.Add(values[i]);
+                        }
+                    }
+
+                    readableData.Add(rowDict);
                 }
             }
 
+
+            //tworzenie dummy attributes dla kolumny Geography
+            foreach (var row in readableData)
+            {
+                foreach (var country in geographyValues)
+                {
+                    row[country] = (row["Geography"] == country) ? "1" : "0";
+                }
+                row.Remove("Geography");
+                row.Remove(geographyValues[0]);//usunięcie jednego z dummy attributes
+            }
+
+            foreach (var row in readableData)
+            {
+                foreach (var kvp in row)
+                {
+                    Console.Write($"{kvp.Key}: {kvp.Value}  ");
+                }
+                Console.WriteLine();
+            }
             /****************** Koniec miejsca na rozwiązanie ********************************/
             Console.ReadKey();
         }
