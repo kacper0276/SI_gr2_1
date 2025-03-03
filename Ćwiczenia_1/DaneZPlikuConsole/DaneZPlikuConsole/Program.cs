@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
+using System.Data.Common;
 
 namespace DaneZPlikuConsole
 {
@@ -141,7 +142,7 @@ namespace DaneZPlikuConsole
                     sum += parsedData;
                 }
 
-                result.Add(sum / columnSize);
+                result.Add(sum / size);
             }
 
             return result;
@@ -235,6 +236,104 @@ namespace DaneZPlikuConsole
             return Math.Sqrt(variance);
         }
 
+        
+        static string[][] NormalizeIntoIntervals(string[][] data, double a, double b)
+        {
+            int size = data.Length;
+            int columnSize = data[0].Length;
+            List<double> minResults = FindMin(data);
+            List<double> maxResults = FindMax(data);
+
+            for (int j = 0; j < columnSize; j++)
+            {
+                if(minResults[j] == maxResults[j])
+                {
+                    continue;
+                }
+                for (int i = 0; i < size; i++)
+                {
+                    double parsedData = StringToDouble(data[i][j]);
+                    double normalizedValue = ((b - a) * (parsedData - minResults[j])) / (maxResults[j] - minResults[j]) + a;
+                    data[i][j] = normalizedValue.ToString("F2");//Przybliżenie do dwóch miejsc po przecinku by dane były czytelne
+                }
+            }
+            return data;
+        }
+        static List<double> StdDev(string[][] data)
+        {
+            int size = data.Length;
+            int columnSize = data[0].Length;
+            var result = new List<double>();
+
+            for (int i = 0; i < columnSize; i++)
+            {
+                var columnData = new List<string>();
+
+                for (int j = 0; j < size; j++)
+                {
+                    columnData.Add(data[j][i]);
+                }
+
+                double stdDev = CalculateStandardDeviation(columnData);
+                result.Add(stdDev);
+            }
+
+            return result;
+        }
+        static string[][] Normalize(string[][] data)
+        {
+
+            int size = data.Length;
+            int columnSize = data[0].Length;
+            List<double> averages = Avg(data);
+            List<double> stdDevs = StdDev(data);
+
+            for (int j = 0; j < columnSize; j++)
+            {
+                if (stdDevs[j]==0)
+                {
+                    continue;
+                }
+                for (int i = 0; i < size; i++)
+                {
+                    double parsedData = StringToDouble(data[i][j]);
+                    double normalizedValue = (parsedData - averages[j]) / stdDevs[j];
+                    data[i][j] = normalizedValue.ToString("G");
+                }
+            }
+            return data;
+        }
+        static double CalculateVariance(List<string> data)
+        {
+            List<double> numericData = data.Select(x => StringToDouble(x)).ToList();
+
+            double mean = numericData.Average();
+
+            double sumOfSquares = numericData.Sum(x => Math.Pow(x - mean, 2));
+
+            return sumOfSquares / numericData.Count;
+        }
+        static List<double> Variance(string[][] data)
+        {
+            int size = data.Length;
+            int columnSize = data[0].Length;
+            var result = new List<double>();
+
+            for (int i = 0; i < columnSize; i++)
+            {
+                var columnData = new List<string>();
+
+                for (int j = 0; j < size; j++)
+                {
+                    columnData.Add(data[j][i]);
+                }
+
+                double stdDev = CalculateVariance(columnData);
+                result.Add(stdDev);
+            }
+
+            return result;
+        }
         static void Main(string[] args)
         {
             string nazwaPlikuZDanymi = @"diabetes.txt";
@@ -317,7 +416,7 @@ namespace DaneZPlikuConsole
                 var standardDeviation = CalculateStandardDeviation(data);
                 Console.WriteLine(standardDeviation);
             }
-
+            // Zadanie 4 i 5
             // Generowanie 10%
             int originalRows = wczytaneDane.Length;
             int cols = wczytaneDane[0].Length;
@@ -331,7 +430,7 @@ namespace DaneZPlikuConsole
                 expandedData[i] = new string[cols];
                 Array.Copy(wczytaneDane[i], expandedData[i], cols);
             }
-
+            
             for (int i = originalRows; i < newRows; i++)
             {
                 expandedData[i] = new string[cols];
@@ -341,36 +440,89 @@ namespace DaneZPlikuConsole
                 }
             }
 
-            // Zadanie 4 i 5
+            string[][] normalizedData = NormalizeIntoIntervals(wczytaneDane, -1, 1);
+            Console.WriteLine("Dane znormalizowane na przedział <-1, 1>\n");
+            foreach (var row in normalizedData)
+            {
+                Console.WriteLine(string.Join(" ", row));
+            }
+            string[][] normalizedData2 = NormalizeIntoIntervals(wczytaneDane, 0, 1);
+            Console.WriteLine("Dane znormalizowane na przedział <0, 1>\n");
+            foreach (var row in normalizedData2)
+            {
+                Console.WriteLine(string.Join(" ", row));
+            }
+            string[][] normalizedData3 = NormalizeIntoIntervals(wczytaneDane, -10, 10);
+            Console.WriteLine("Dane znormalizowane na przedział <-10,10>");
+            foreach (var row in normalizedData3)
+            {
+                Console.WriteLine(string.Join(" ", row));
+            }
 
-            // Wczytanie csv
+            string[][] normalizedData4 = Normalize(wczytaneDane);
+            Console.WriteLine("Dane znormalizowane");
+            foreach (var row in normalizedData4)
+            {
+                Console.WriteLine(string.Join(" ", row.Select(value => double.Parse(value).ToString("F2"))));
+            }
+
+            List<double>averageValues = Avg(normalizedData4);
+            Console.WriteLine(string.Join(" ", averageValues));
+            //otrzymane wartości nie są dokładnie równe zero ale bliskie jemu z powodu zaokrąglania
+            List<double> variances = Variance(normalizedData4);
+            Console.WriteLine(string.Join(" ", variances));
+            //wartości są równe lub bardzo zbliżone do 1
+
+
+
+            //wczytanie pliku CSV
+            List<Dictionary<string, string>> readableData = new List<Dictionary<string, string>>();
+            UniqueSet<string> geographyValues = new UniqueSet<string>();
             using (var reader = new StreamReader(@"Churn_Modelling.csv"))
             {
-                List<string> listA = new List<string>();
-                List<string> listB = new List<string>();
+                string headerLine = reader.ReadLine();
+                var headers = headerLine.Split(',');
+
                 while (!reader.EndOfStream)
                 {
                     var line = reader.ReadLine();
                     var values = line.Split(',');
 
-                    Console.WriteLine(values[0]);
-                    Console.WriteLine(values[1]);
-                    Console.WriteLine(values[2]);
-                    Console.WriteLine(values[3]);
-                    Console.WriteLine(values[4]);
-                    Console.WriteLine(values[5]);
-                    Console.WriteLine(values[6]);
-                    Console.WriteLine(values[7]);
-                    Console.WriteLine(values[8]);
-                    Console.WriteLine(values[9]);
-                    Console.WriteLine(values[10]);
-                    Console.WriteLine(values[11]);
-                    Console.WriteLine(values[12]);
-                    Console.WriteLine(values[13]);
+                    var rowDict = new Dictionary<string, string>();
+                    for (int i = 0; i < headers.Length; i++)
+                    {
+                        string header = headers[i];
+                        rowDict[headers[i]] = values.Length > i ? values[i] : "MISSING";
+                        if (header == "Geography")
+                        {
+                            geographyValues.Add(values[i]);
+                        }
+                    }
+
+                    readableData.Add(rowDict);
                 }
             }
 
 
+            //tworzenie dummy attributes dla kolumny Geography
+            foreach (var row in readableData)
+            {
+                foreach (var country in geographyValues)
+                {
+                    row[country] = (row["Geography"] == country) ? "1" : "0";
+                }
+                row.Remove("Geography");
+                row.Remove(geographyValues[0]);//usunięcie jednego z dummy attributes
+            }
+
+            foreach (var row in readableData)
+            {
+                foreach (var kvp in row)
+                {
+                    Console.Write($"{kvp.Key}: {kvp.Value}  ");
+                }
+                Console.WriteLine();
+            }
             /****************** Koniec miejsca na rozwiązanie ********************************/
             Console.ReadKey();
         }
