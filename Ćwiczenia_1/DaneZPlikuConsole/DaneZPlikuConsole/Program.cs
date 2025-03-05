@@ -364,7 +364,7 @@ namespace DaneZPlikuConsole
 
             var maxResult = FindMax(wczytaneDane);
 
-            Console.WriteLine("\nWartości maxymalne atrybutów:");
+            Console.WriteLine("\nWartości maksymalne atrybutów:");
             foreach (var item in maxResult)
             {
                 Console.WriteLine(item);
@@ -390,7 +390,7 @@ namespace DaneZPlikuConsole
                 }
             }
 
-            Console.WriteLine($"\nIlości oraz listy unikalnych wartości dla poszczególnych atrybutów została zapisana do pliku: UnikalneAtrybuty.txt\n");
+            Console.WriteLine($"\nIlości oraz listy unikalnych wartości dla poszczególnych atrybutów zostały zapisane do pliku: UnikalneAtrybuty.txt\n");
 
             // Odchylenie standardowe
             Console.WriteLine("Odchylenia standardowe atrybutów:");
@@ -407,10 +407,10 @@ namespace DaneZPlikuConsole
                 var standardDeviation = CalculateStandardDeviation(data);
                 Console.WriteLine(standardDeviation);
             }
-            // Zadanie 4 i 5
-            // Generowanie 10%
+
             Console.WriteLine("-----------------------------------------------------------------------");
             Console.WriteLine("Zadanie 4");
+            // Generowanie 10%
             int originalRows = wczytaneDane.Length;
             int cols = wczytaneDane[0].Length;
             int extraRows = originalRows / 10;
@@ -436,7 +436,7 @@ namespace DaneZPlikuConsole
             string wynik = TablicaDoString(expandedData);
             using (StreamWriter writer = new StreamWriter("DodatkoweWartosci.txt"))
             {
-                writer.Write(wynik);  // Writes the whole string efficiently
+                writer.Write(wynik);
             }
             Console.WriteLine("Dane po wygenerowaniu 10% dodatkowych wierszy z nieznanymi wartościami i wypełnieniu ich wartościami średnimi zostały zapisane jako DodatkoweWartosci.txt\"");
 
@@ -446,7 +446,7 @@ namespace DaneZPlikuConsole
             string normalizedData = TablicaDoString(normalizedDataTab);
             using (StreamWriter writer = new StreamWriter("NormalizacjaNaPrzedzial1.txt"))
             {
-                writer.Write(normalizedData);  // Writes the whole string efficiently
+                writer.Write(normalizedData);
             }
             Console.WriteLine($"\nDane znormalizowane na przedział <-1, 1> zostały zapisane jako NormalizacjaNaPrzedzial1.txt");
 
@@ -456,7 +456,7 @@ namespace DaneZPlikuConsole
             string normalizedData2 = TablicaDoString(normalizedDataTab2);
             using (StreamWriter writer = new StreamWriter("NormalizacjaNaPrzedzial2.txt"))
             {
-                writer.Write(normalizedData2);  // Writes the whole string efficiently
+                writer.Write(normalizedData2);
             }
             Console.WriteLine($"\nDane znormalizowane na przedział <0, 1> zostały zapisane jako NormalizacjaNaPrzedzial2.txt");
 
@@ -466,7 +466,7 @@ namespace DaneZPlikuConsole
             string normalizedData3 = TablicaDoString(normalizedDataTab3);
             using (StreamWriter writer = new StreamWriter("NormalizacjaNaPrzedzial3.txt"))
             {
-                writer.Write(normalizedData3);  // Writes the whole string efficiently
+                writer.Write(normalizedData3);
             }
             Console.WriteLine($"\nDane znormalizowane na przedział <-10, 10> zostały zapisane jako NormalizacjaNaPrzedzial3.txt");
 
@@ -484,7 +484,7 @@ namespace DaneZPlikuConsole
             Console.WriteLine($"\nWartości średnie atrybutów po standaryzacji:");
             List<double> averageValues = Avg(standarizedData);
             Console.WriteLine(string.Join(" ", averageValues));
-            // otrzymane wartości nie są dokładnie równe zero ale bliskie jemu z powodu zaokrąglania
+            // otrzymane wartości nie są dokładnie równe zeru ale bliskie jemu z powodu zaokrągleń numerycznych
             Console.WriteLine($"\nWariacje atrybutów po standaryzacji:");
             List<double> variances = Variance(standarizedData);
             Console.WriteLine(string.Join(" ", variances));
@@ -523,7 +523,7 @@ namespace DaneZPlikuConsole
                 }
             }
 
-            // Zastąpienie Geography zmiennymi dummy
+            // Zastąpienie atrybutu Geography atrybutami dummy
             foreach (var row in readableData)
             {
                 foreach (var country in geographyValues)
