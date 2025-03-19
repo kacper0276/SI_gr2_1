@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
+using System.Data.Common;
 
 namespace DaneZPlikuConsole
 {
@@ -141,7 +142,7 @@ namespace DaneZPlikuConsole
                     sum += parsedData;
                 }
 
-                result.Add(sum / columnSize);
+                result.Add(sum / size);
             }
 
             return result;
@@ -177,7 +178,7 @@ namespace DaneZPlikuConsole
                 }
 
                 string mostCommon = frequency.OrderByDescending(x => x.Value).FirstOrDefault().Key;
-                string replacement = count > 0 ? (sum / count).ToString() : mostCommon;
+                string replacement = count > 0 ? (sum / count).ToString("F3") : mostCommon;
 
                 for (int i = 0; i < rows; i++)
                 {
@@ -235,75 +236,164 @@ namespace DaneZPlikuConsole
             return Math.Sqrt(variance);
         }
 
+        
+        static string[][] NormalizeIntoIntervals(string[][] data, double a, double b)
+        {
+            int size = data.Length;
+            int columnSize = data[0].Length;
+            List<double> minResults = FindMin(data);
+            List<double> maxResults = FindMax(data);
+
+            for (int j = 0; j < columnSize; j++)
+            {
+                if(minResults[j] == maxResults[j])
+                {
+                    continue;
+                }
+                for (int i = 0; i < size; i++)
+                {
+                    double parsedData = StringToDouble(data[i][j]);
+                    double normalizedValue = ((b - a) * (parsedData - minResults[j])) / (maxResults[j] - minResults[j]) + a;
+                    data[i][j] = normalizedValue.ToString("F2");//Przybliżenie do dwóch miejsc po przecinku by dane były czytelne
+                }
+            }
+            return data;
+        }
+        static List<double> StdDev(string[][] data)
+        {
+            int size = data.Length;
+            int columnSize = data[0].Length;
+            var result = new List<double>();
+
+            for (int i = 0; i < columnSize; i++)
+            {
+                var columnData = new List<string>();
+
+                for (int j = 0; j < size; j++)
+                {
+                    columnData.Add(data[j][i]);
+                }
+
+                double stdDev = CalculateStandardDeviation(columnData);
+                result.Add(stdDev);
+            }
+
+            return result;
+        }
+        static string[][] Standarize(string[][] data)
+        {
+
+            int size = data.Length;
+            int columnSize = data[0].Length;
+            List<double> averages = Avg(data);
+            List<double> stdDevs = StdDev(data);
+
+            for (int j = 0; j < columnSize; j++)
+            {
+                if (stdDevs[j]==0)
+                {
+                    continue;
+                }
+                for (int i = 0; i < size; i++)
+                {
+                    double parsedData = StringToDouble(data[i][j]);
+                    double normalizedValue = (parsedData - averages[j]) / stdDevs[j];
+                    data[i][j] = normalizedValue.ToString("G");
+                }
+            }
+            return data;
+        }
+        static double CalculateVariance(List<string> data)
+        {
+            List<double> numericData = data.Select(x => StringToDouble(x)).ToList();
+
+            double mean = numericData.Average();
+
+            double sumOfSquares = numericData.Sum(x => Math.Pow(x - mean, 2));
+
+            return sumOfSquares / numericData.Count;
+        }
+        static List<double> Variance(string[][] data)
+        {
+            int size = data.Length;
+            int columnSize = data[0].Length;
+            var result = new List<double>();
+
+            for (int i = 0; i < columnSize; i++)
+            {
+                var columnData = new List<string>();
+
+                for (int j = 0; j < size; j++)
+                {
+                    columnData.Add(data[j][i]);
+                }
+
+                double stdDev = CalculateVariance(columnData);
+                result.Add(stdDev);
+            }
+
+            return result;
+        }
         static void Main(string[] args)
         {
+            Console.WriteLine("Zadanie 3");
             string nazwaPlikuZDanymi = @"diabetes.txt";
             string nazwaPlikuZTypamiAtrybutow = @"diabetes-type.txt";
 
             string[][] wczytaneDane = StringToTablica(nazwaPlikuZDanymi);
             string[][] atrType = StringToTablica(nazwaPlikuZTypamiAtrybutow);
 
-            Console.WriteLine("Dane systemu");
-            string wynik = TablicaDoString(wczytaneDane);
-            Console.Write(wynik);
-
             Console.WriteLine("");
-            Console.WriteLine("Dane pliku z typami");
-
+            Console.WriteLine("Symbole klas decyzyjnych:");
             string wynikAtrType = TablicaDoString(atrType);
             Console.Write(wynikAtrType);
 
-            /****************** Miejsce na rozwiązanie *********************************/
-            //Console.WriteLine(atrType[0][0]);
-            //Console.WriteLine(atrType[0][1]);
-            //Console.WriteLine(atrType[1][0]);
-            //Console.WriteLine(atrType[1][1]);
-            //Console.WriteLine(atrType[2][0]);
-            //Console.WriteLine(atrType[2][1]);
 
-            // Wielkości klas decyzyjnych
+            Console.WriteLine("\nWielkości klas decyzyjnych:");
             Console.WriteLine(wczytaneDane.Length);
+
 
             var minResult = FindMin(wczytaneDane);
 
-            Console.WriteLine("Minimalne: ");
+            Console.WriteLine("\nWartości minimalne atrybutów: ");
             foreach (var item in minResult)
             {
                 Console.WriteLine(item);
             }
 
+
             var maxResult = FindMax(wczytaneDane);
 
-            Console.WriteLine("Maksymalne: ");
+            Console.WriteLine("\nWartości maxymalne atrybutów:");
             foreach (var item in maxResult)
             {
                 Console.WriteLine(item);
             }
 
-            // Lista wszystikch
-            var uniq = getUnique(wczytaneDane);
 
-            foreach (var item in uniq)
+            using (StreamWriter writer = new StreamWriter("UnikalneAtrybuty.txt"))
             {
-                Console.WriteLine(item);
-            }
+                writer.WriteLine("Unikalne wartości atrybutów");
 
-            // Poszczególne
-            for (int i = 0; i < wczytaneDane[0].Length; i++)
-            {
-                var uniqueForColumn = getUniqueForColumn(wczytaneDane, i);
-
-                foreach (var item in uniqueForColumn)
+                for (int i = 0; i < wczytaneDane[0].Length; i++)
                 {
-                    Console.WriteLine(item);
+                    writer.WriteLine("Atrybut " + (i + 1));
+                    var uniqueForColumn = getUniqueForColumn(wczytaneDane, i);
+
+                    foreach (var item in uniqueForColumn)
+                    {
+                        writer.WriteLine(item);
+                    }
+
+                    writer.WriteLine("Liczba wszystkich: " + uniqueForColumn.Count);
+                    writer.WriteLine("--------------------------");
                 }
-
-                Console.WriteLine("Liczba wszystkich: " + uniqueForColumn.Count);
-
-                Console.WriteLine("--------------------------");
             }
+
+            Console.WriteLine($"\nIlości oraz listy unikalnych wartości dla poszczególnych atrybutów została zapisana do pliku: UnikalneAtrybuty.txt\n");
 
             // Odchylenie standardowe
+            Console.WriteLine("Odchylenia standardowe atrybutów:");
             int length = wczytaneDane.Length;
             for (int i = 0; i < wczytaneDane[0].Length; i++)
             {
@@ -317,8 +407,10 @@ namespace DaneZPlikuConsole
                 var standardDeviation = CalculateStandardDeviation(data);
                 Console.WriteLine(standardDeviation);
             }
-
+            // Zadanie 4 i 5
             // Generowanie 10%
+            Console.WriteLine("-----------------------------------------------------------------------");
+            Console.WriteLine("Zadanie 4");
             int originalRows = wczytaneDane.Length;
             int cols = wczytaneDane[0].Length;
             int extraRows = originalRows / 10;
@@ -340,37 +432,123 @@ namespace DaneZPlikuConsole
                     expandedData[i][j] = "?";
                 }
             }
-
-            // Zadanie 4 i 5
-
-            // Wczytanie csv
-            using (var reader = new StreamReader(@"Churn_Modelling.csv"))
+            FillMissingValues(expandedData);
+            string wynik = TablicaDoString(expandedData);
+            using (StreamWriter writer = new StreamWriter("DodatkoweWartosci.txt"))
             {
-                List<string> listA = new List<string>();
-                List<string> listB = new List<string>();
+                writer.Write(wynik);  // Writes the whole string efficiently
+            }
+            Console.WriteLine("Dane po wygenerowaniu 10% dodatkowych wierszy z nieznanymi wartościami i wypełnieniu ich wartościami średnimi zostały zapisane jako DodatkoweWartosci.txt\"");
+
+
+            // Normalizacja na przedział <-1, 1>
+            string[][] normalizedDataTab = NormalizeIntoIntervals(wczytaneDane, -1, 1);
+            string normalizedData = TablicaDoString(normalizedDataTab);
+            using (StreamWriter writer = new StreamWriter("NormalizacjaNaPrzedzial1.txt"))
+            {
+                writer.Write(normalizedData);  // Writes the whole string efficiently
+            }
+            Console.WriteLine($"\nDane znormalizowane na przedział <-1, 1> zostały zapisane jako NormalizacjaNaPrzedzial1.txt");
+
+
+            // Normalizacja na przedział <0, 1>
+            string[][] normalizedDataTab2 = NormalizeIntoIntervals(wczytaneDane, 0, 1);
+            string normalizedData2 = TablicaDoString(normalizedDataTab2);
+            using (StreamWriter writer = new StreamWriter("NormalizacjaNaPrzedzial2.txt"))
+            {
+                writer.Write(normalizedData2);  // Writes the whole string efficiently
+            }
+            Console.WriteLine($"\nDane znormalizowane na przedział <0, 1> zostały zapisane jako NormalizacjaNaPrzedzial2.txt");
+
+
+            // Normalizacja na przedział <-10, 10>
+            string[][] normalizedDataTab3 = NormalizeIntoIntervals(wczytaneDane, -10, 10);
+            string normalizedData3 = TablicaDoString(normalizedDataTab3);
+            using (StreamWriter writer = new StreamWriter("NormalizacjaNaPrzedzial3.txt"))
+            {
+                writer.Write(normalizedData3);  // Writes the whole string efficiently
+            }
+            Console.WriteLine($"\nDane znormalizowane na przedział <-10, 10> zostały zapisane jako NormalizacjaNaPrzedzial3.txt");
+
+
+            string[][] standarizedData = Standarize(wczytaneDane);
+            using (StreamWriter writer = new StreamWriter("Standaryzacja.txt"))
+            {
+                foreach (var row in standarizedData)
+                {
+                    writer.WriteLine(string.Join(" ", row.Select(value => double.Parse(value).ToString("F2"))));
+                }
+            }
+            Console.WriteLine($"\nDane po standaryzacji zostały zapisane jako Standaryzacja.txt");
+
+            Console.WriteLine($"\nWartości średnie atrybutów po standaryzacji:");
+            List<double> averageValues = Avg(standarizedData);
+            Console.WriteLine(string.Join(" ", averageValues));
+            // otrzymane wartości nie są dokładnie równe zero ale bliskie jemu z powodu zaokrąglania
+            Console.WriteLine($"\nWariacje atrybutów po standaryzacji:");
+            List<double> variances = Variance(standarizedData);
+            Console.WriteLine(string.Join(" ", variances));
+            // wartości są równe lub bardzo zbliżone do 1
+
+
+
+            List<Dictionary<string, string>> readableData = new List<Dictionary<string, string>>();
+            List<string> geographyValues = new List<string>();
+            string inputFilePath = @"Churn_Modelling.csv";
+            string outputFilePath = @"DaneZDummyValues.csv";
+
+            // wczytanie CSV 
+            using (var reader = new StreamReader(inputFilePath))
+            {
+                string headerLine = reader.ReadLine();
+                var headers = headerLine.Split(',');
+
                 while (!reader.EndOfStream)
                 {
                     var line = reader.ReadLine();
                     var values = line.Split(',');
 
-                    Console.WriteLine(values[0]);
-                    Console.WriteLine(values[1]);
-                    Console.WriteLine(values[2]);
-                    Console.WriteLine(values[3]);
-                    Console.WriteLine(values[4]);
-                    Console.WriteLine(values[5]);
-                    Console.WriteLine(values[6]);
-                    Console.WriteLine(values[7]);
-                    Console.WriteLine(values[8]);
-                    Console.WriteLine(values[9]);
-                    Console.WriteLine(values[10]);
-                    Console.WriteLine(values[11]);
-                    Console.WriteLine(values[12]);
-                    Console.WriteLine(values[13]);
+                    var rowDict = new Dictionary<string, string>();
+                    for (int i = 0; i < headers.Length; i++)
+                    {
+                        string header = headers[i];
+                        rowDict[header] = values.Length > i ? values[i] : "MISSING";
+                        if (header == "Geography" && !geographyValues.Contains(values[i]))
+                        {
+                            geographyValues.Add(values[i]);
+                        }
+                    }
+
+                    readableData.Add(rowDict);
                 }
             }
 
+            // Zastąpienie Geography zmiennymi dummy
+            foreach (var row in readableData)
+            {
+                foreach (var country in geographyValues)
+                {
+                    row[country] = (row["Geography"] == country) ? "1" : "0";
+                }
+                row.Remove("Geography");
 
+                // kasacja jednego z nowych atrybutów, aby uniknąć symetrycznego wchłaniania się wartości
+                row.Remove(geographyValues[0]);
+            }
+
+            // Zapisanie jako CSV
+            using (var writer = new StreamWriter(outputFilePath))
+            {
+                var newHeaders = readableData[0].Keys.ToList();
+                writer.WriteLine(string.Join(",", newHeaders));
+
+                foreach (var row in readableData)
+                {
+                    writer.WriteLine(string.Join(",", newHeaders.Select(header => row[header])));
+                }
+            }
+
+            Console.WriteLine($"\nDane po zamianie atrybutu Geography na dummy values zostały zapisane jako {outputFilePath}");
             /****************** Koniec miejsca na rozwiązanie ********************************/
             Console.ReadKey();
         }
