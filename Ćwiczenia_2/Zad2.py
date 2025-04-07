@@ -78,6 +78,19 @@ def a_star(initial_state):
     return None
 
 
+#                 [ ][1][3]
+# Initial state = [4][2][5]
+#                 [7][8][6]
+#
+# Action(initial state) = {right, down}
+#                               [1][ ][3]
+# Result(initial state, right) =[4][2][5]
+#                               [7][8][6]
+#
+#              [1][2][3]
+# Goal state = [4][5][6]
+#              [7][8][ ]
+
 initial_state = [[0, 1, 3], [4, 2, 5], [7, 8, 6]]
 print("Initial state:")
 print_state(initial_state)
