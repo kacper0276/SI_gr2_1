@@ -42,6 +42,11 @@ class VacuumCleaner:
 
         return state
 
+# Initial state = (A, dirty, dirty)
+# Action(initial state) = {suck, right}
+# Result(initial state, suck) = (A, clean, dirty)
+# Goal state = ([A or B], clean, clean)
+
 
 initial_states = [
     ('A', 'dirty', 'dirty'),
