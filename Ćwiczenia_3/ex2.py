@@ -41,7 +41,6 @@ def layered_consistent_rules(examples, target_index, class_label):
     attr_indices = list(range(examples.shape[1] - 1))
     max_len = len(attr_indices)
 
-    # Lista indeksów obiektów danej klasy
     class_objects = [i for i, e in enumerate(examples) if e[target_index] == class_label]
 
     for cond_len in range(1, max_len + 1):
@@ -58,14 +57,15 @@ def layered_consistent_rules(examples, target_index, class_label):
                     rule = {'conditions': list(conds), 'class': class_label}
 
                     if is_consistent(rule, examples, target_index):
-                        # Znajdź pokryte obiekty tej klasy
                         covered_now = {j for j, ex2 in enumerate(examples)
                                        if rule_matches(rule, ex2) and ex2[target_index] == class_label}
 
-                        # Jeśli reguła pokrywa nowe obiekty, dodaj ją
-                        if not covered_now.issubset(already_covered):
+                        new_covered = covered_now - already_covered
+
+                        if new_covered:
+                            rule['covered_count'] = len(new_covered)
                             rules.append(rule)
-                            already_covered.update(covered_now)
+                            already_covered.update(new_covered)
                             found = True
                             break
                 if found:
@@ -76,11 +76,17 @@ def layered_consistent_rules(examples, target_index, class_label):
 
     return rules
 
-def save_rules_to_file(rules, filename):
+
+def count_covered_objects(rule, examples, target_index):
+    return sum(1 for e in examples if rule_matches(rule, e) and e[target_index] == rule['class'])
+
+
+def save_rules_to_file(rules, filename, examples, target_index):
     with open(filename, "w") as f:
         for r in rules:
             cond = " AND ".join([f"a{c[0] + 1} {c[1]} {c[2]}" for c in r['conditions']])
-            f.write(f"IF {cond} THEN d = {r['class']}\n")
+            covered = r.get('covered_count', count_covered_objects(r, examples, target_index))
+            f.write(f"IF {cond} THEN d = {r['class']} [covers: {covered} objects]\n")
 
 
 
@@ -90,15 +96,17 @@ target_index = data.shape[1] - 1
 rules_class_1 = layered_consistent_rules(data, target_index, class_label=1)
 rules_class_0 = layered_consistent_rules(data, target_index, class_label=0)
 
-# print("Reguły dla klasy decyzyjnej 1:")
-# for r in rules_class_1:
-#     cond = " AND ".join([f"a{c[0] + 1} {c[1]} {c[2]}" for c in r['conditions']])
-#     print(f"IF {cond} THEN d = {r['class']}")
-#
-# print("\nReguły dla klasy decyzyjnej 0:")
-# for r in rules_class_0:
-#     cond = " AND ".join([f"a{c[0] + 1} {c[1]} {c[2]}" for c in r['conditions']])
-#     print(f"IF {cond} THEN d = {r['class']}")
+print("Reguły dla klasy decyzyjnej 1:")
+for r in rules_class_1:
+    cond = " AND ".join([f"a{c[0] + 1} {c[1]} {c[2]}" for c in r['conditions']])
+    covered = r.get('covered_count', count_covered_objects(r, data, target_index))
+    print(f"IF {cond} THEN d = {r['class']} [covers: {covered} objects]")
+
+print("\nReguły dla klasy decyzyjnej 0:")
+for r in rules_class_0:
+    cond = " AND ".join([f"a{c[0] + 1} {c[1]} {c[2]}" for c in r['conditions']])
+    covered = r.get('covered_count', count_covered_objects(r, data, target_index))
+    print(f"IF {cond} THEN d = {r['class']} [covers: {covered} objects]")
 
 # Zapis do pliku
-save_rules_to_file(rules_class_1 + rules_class_0, "reguly.txt")
+save_rules_to_file(rules_class_1 + rules_class_0, "reguly.txt", data, target_index)
