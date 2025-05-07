@@ -35,7 +35,21 @@ def generate_conditions(example, attr_indices):
     return list(itertools.product(*conditions))
 
 
-def layered_consistent_rules(examples, target_index, class_label):
+def m_estimate(rule, examples, target_index, m=10):
+    matched = [e for e in examples if rule_matches(rule, e)]
+    n = len(matched)
+    if n == 0:
+        return 0
+    n_c = sum(1 for e in matched if e[target_index] == rule['class'])
+
+    # prior probability
+    class_count = sum(1 for e in examples if e[target_index] == rule['class'])
+    p = class_count / len(examples)
+
+    return (n_c + m * p) / (n + m)
+
+
+def layered_consistent_rules(examples, target_index, class_label, m=10):
     rules = []
     already_covered = set()
     attr_indices = list(range(examples.shape[1] - 1))
@@ -50,6 +64,8 @@ def layered_consistent_rules(examples, target_index, class_label):
 
             ex = examples[i]
             found = False
+            best_rule = None
+            best_score = 0
 
             for attrs in itertools.combinations(attr_indices, cond_len):
                 all_conds = generate_conditions(ex, attrs)
@@ -57,19 +73,26 @@ def layered_consistent_rules(examples, target_index, class_label):
                     rule = {'conditions': list(conds), 'class': class_label}
 
                     if is_consistent(rule, examples, target_index):
+                        score = m_estimate(rule, examples, target_index, m)
                         covered_now = {j for j, ex2 in enumerate(examples)
                                        if rule_matches(rule, ex2) and ex2[target_index] == class_label}
-
                         new_covered = covered_now - already_covered
 
-                        if new_covered:
+                        if new_covered and score > best_score:
                             rule['covered_count'] = len(new_covered)
-                            rules.append(rule)
-                            already_covered.update(new_covered)
-                            found = True
-                            break
-                if found:
+                            rule['m_estimate'] = score
+                            best_rule = rule
+                            best_score = score
+
+                if best_rule:
+                    rules.append(best_rule)
+                    already_covered.update(j for j, e in enumerate(examples)
+                                           if rule_matches(best_rule, e) and e[target_index] == class_label)
+                    found = True
                     break
+
+            if found:
+                continue
 
         if len(already_covered) == len(class_objects):
             break
@@ -86,8 +109,8 @@ def save_rules_to_file(rules, filename, examples, target_index):
         for r in rules:
             cond = " AND ".join([f"a{c[0] + 1} {c[1]} {c[2]}" for c in r['conditions']])
             covered = r.get('covered_count', count_covered_objects(r, examples, target_index))
-            f.write(f"IF {cond} THEN d = {r['class']} [covers: {covered} objects]\n")
-
+            macc = r.get('m_estimate', m_estimate(r, examples, target_index))
+            f.write(f"IF {cond} THEN d = {r['class']} [covers: {covered} objects, m-estimate: {macc:.2f}]\n")
 
 
 data = load_data("diabetes.txt")
@@ -96,17 +119,4 @@ target_index = data.shape[1] - 1
 rules_class_1 = layered_consistent_rules(data, target_index, class_label=1)
 rules_class_0 = layered_consistent_rules(data, target_index, class_label=0)
 
-print("Reguły dla klasy decyzyjnej 1:")
-for r in rules_class_1:
-    cond = " AND ".join([f"a{c[0] + 1} {c[1]} {c[2]}" for c in r['conditions']])
-    covered = r.get('covered_count', count_covered_objects(r, data, target_index))
-    print(f"IF {cond} THEN d = {r['class']} [covers: {covered} objects]")
-
-print("\nReguły dla klasy decyzyjnej 0:")
-for r in rules_class_0:
-    cond = " AND ".join([f"a{c[0] + 1} {c[1]} {c[2]}" for c in r['conditions']])
-    covered = r.get('covered_count', count_covered_objects(r, data, target_index))
-    print(f"IF {cond} THEN d = {r['class']} [covers: {covered} objects]")
-
-# Zapis do pliku
 save_rules_to_file(rules_class_1 + rules_class_0, "reguly.txt", data, target_index)

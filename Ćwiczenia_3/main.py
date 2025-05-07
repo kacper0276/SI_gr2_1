@@ -1,15 +1,12 @@
 variables = ['X1', 'X2', 'X3']
 domains = {
     'X1': ['R', 'B', 'G'],
-
     'X2': ['R'],
     'X3': ['G']
 }
 
 def constraints(assignment, var, value):
     for other_var, other_value in assignment.items():
-        if value == other_value:
-            return False
     return True
 
 def select_unassigned_variable(assignment, domains):
