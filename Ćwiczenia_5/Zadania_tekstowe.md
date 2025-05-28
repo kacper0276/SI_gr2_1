@@ -2,8 +2,9 @@
 ## Rozwiązania zadań
 
 ###  Zadanie 2
-(i) Jeżeli Wumpus może znaleźć się w polu z dołem, to należy rozważyć 4*8=32 sytuacji
-Z kolei jeżeli nie, to będzie to 1*4+3*3+3*2+1*1= 20
+(i) Jeżeli Wumpus może znaleźć się w polu z dołem, to należy rozważyć 4 × 8 = 32 sytuacji.
+
+Z kolei jeżeli nie, to będzie to 1 × 4 + 3 × 3 + 3 × 2 + 1 × 1 = 20
 
 ---
 
@@ -13,9 +14,13 @@ Z kolei jeżeli nie, to będzie to 1*4+3*3+3*2+1*1= 20
 **Przekształcenia:**
 
 **¬(p∨(¬p∧q))**
+
 **≡¬p∧¬(¬p∧q)** (z II prawa De Morgana)
+
 **≡¬p∧(p∨¬q)** (z I prawa De Morgana)
+
 **≡(¬p∧p)∨(¬p∧¬q)**
+
 **(¬p∧p)** jest fałszem więc zostaje **(¬p∧¬q)**
 
 Więc tak, ¬(p∨(¬p∧q)) i ¬p∧¬q są logicznie równoważne
@@ -198,12 +203,19 @@ Dodajemy negację wniosku:
 
 #### Dowodzenie przez rezolucję
 (A ∨ B) ∧  (¬B ∨ A) ⇒ (A ∨ A) ≡ A
+
 A ∧  (¬A ∨ B ∨ E) ⇒ (B ∨ E)
+
 (B ∨ E) ∧  (¬E ∨ B)  ⇒ B
+
 B ∧  (¬B ∨ F) ⇒ F
+
 B ∧  (¬B ∨ C) ⇒ C
+
 C ∧  F ∧  (¬C ∨ ¬F ∨ ¬B)  ⇒ ¬B
+
 ¬B ∧ B ⇒ ϕ
+
 Znaleziono sprzeczność w zbiorze klauzul z zaprzeczeniem wniosku. Oznacza to, że ¬A∧¬B została wywnioskowana logicznie metodą rezolucji
 
 
