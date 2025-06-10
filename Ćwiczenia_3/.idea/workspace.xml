@@ -4,7 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f0cf6be0-9a99-4594-823f-0463ea49fcb1" name="Changes" comment="Ex 3 (Zadanie 2)" />
+    <list default="true" id="f0cf6be0-9a99-4594-823f-0463ea49fcb1" name="Changes" comment="Ex 3 (Zadanie 2)">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -46,6 +48,7 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
     "git-widget-placeholder": "master",
+    "last_opened_file_path": "C:/Users/kacpe/Desktop/SI_gr2_1/Ćwiczenia_4",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -72,6 +75,8 @@
       <updated>1744179190730</updated>
       <workItem from="1744179191817" duration="135000" />
       <workItem from="1745824166319" duration="452000" />
+      <workItem from="1749104532613" duration="258000" />
+      <workItem from="1749104950359" duration="38000" />
     </task>
     <task id="LOCAL-00001" summary="Ex 3 - Init">
       <option name="closed" value="true" />
